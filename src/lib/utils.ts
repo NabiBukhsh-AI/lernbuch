@@ -27,3 +27,8 @@ export function timeAgo(date: Date | null): string {
   }
   return 'just now';
 }
+
+/** Absolute site origin for robots.txt and the sitemap; Vercel provides the production domain. */
+export const SITE_URL = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : 'http://localhost:3000';

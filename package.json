@@ -1,6 +1,22 @@
 {
   "name": "lernbuch",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "German that shows you how it works: colour-coded genders, visible cases, exercises that explain every answer, and spaced repetition.",
+  "homepage": "https://lernbuch.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NabiBukhsh-AI/lernbuch.git"
+  },
+  "keywords": [
+    "german",
+    "learn-german",
+    "language-learning",
+    "spaced-repetition",
+    "grammar",
+    "vocabulary",
+    "cefr",
+    "education"
+  ],
   "private": true,
   "type": "module",
   "engines": {

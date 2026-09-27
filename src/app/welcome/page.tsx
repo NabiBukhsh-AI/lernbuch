@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   title: { absolute: `${APP_NAME} · Learn German lesson by lesson` },
   description:
     'Free German lessons from A1 to B1 with colour-coded genders, visible cases, exercises that explain every answer, and spaced repetition.',
+  // Signed-out visitors to / are redirected here, so this is the one URL to index.
+  alternates: { canonical: '/welcome' },
   robots: { index: true, follow: true },
 };
 
