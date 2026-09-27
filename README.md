@@ -14,14 +14,10 @@ Each lesson becomes **Overview → Vocabulary → Grammar → Classwork → Home
 - **Spaced repetition and weak skills.** Wrong answers pull the linked vocabulary and grammar forward in the review queue, and skills below 70% are offered as a drill.
 - **Umlauts are one keystroke away.** A persistent ä ö ü ß strip, plus Alt+a / o / u / s.
 
-## Accounts and roles
+## Accounts
 
-- **Learners** sign up themselves with a username and password (no email). Signup and login are rate-limited per IP and per username, and the signup form has a honeypot against bots.
-- **One admin**, created from environment variables by `pnpm seed:admin`. The signup form can never create an admin, and a partial unique index makes a second admin impossible at the database level.
-- **The admin panel** (`/admin`) has two parts:
-  - **Learners:** each learner's last activity, answers, accuracy, quizzes and review cards. The admin can suspend, restore or delete an account, or reset its password.
-  - **Lessons:** upload lesson `.md` files, and publish or hide lessons. A hidden lesson is a draft that only the admin can open.
-- **Learners manage their own accounts** under Settings: display name, password, and account deletion (which removes all of their progress).
+- **Anyone can sign up** with a username and password; no email is needed. Signup and login are rate-limited per IP and per username, and the signup form has a honeypot against bots.
+- **Learners manage their own accounts** under Settings: display name, password, and account deletion, which removes all of their progress.
 
 ## Stack
 
@@ -33,14 +29,12 @@ Requires **Node 20+**, **pnpm** and **Docker**.
 
 ```bash
 pnpm install
-cp .env.example .env.local      # then set AUTH_SECRET and the ADMIN_* values
+cp .env.example .env.local      # then set AUTH_SECRET
 pnpm db:up                      # Postgres + a WebSocket proxy, see docker-compose.yml
 pnpm db:migrate
-pnpm seed:admin                 # creates your admin account
+pnpm ingest                     # loads the lesson files in CONTENT_DIR
 pnpm dev                        # http://localhost:3000
 ```
-
-Sign in with your admin account and upload a lesson under **Admin → Lessons**, or put lesson files in `CONTENT_DIR` and run `pnpm ingest`.
 
 The app talks to Postgres through the Neon serverless driver, which speaks WebSocket. Locally, `docker-compose.yml` runs Neon's `wsproxy` in front of a stock Postgres, and `src/db/client.ts` switches to it whenever `DATABASE_URL` points at `localhost`. The same code therefore runs locally and in production.
 
@@ -51,9 +45,7 @@ The app talks to Postgres through the Neon serverless driver, which speaks WebSo
 | `DATABASE_URL` | app, scripts | Postgres connection string. For Neon, keep `?sslmode=require` |
 | `AUTH_SECRET` | app | Session signing key: `openssl rand -base64 32` |
 | `AUTH_URL` | app | The site's public URL |
-| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | `seed:admin` | The admin account. Re-run the script to rotate the password |
-| `ADMIN_DISPLAY_NAME` | `seed:admin` | Optional |
-| `CONTENT_DIR` | `ingest` | Optional folder of lesson files |
+| `CONTENT_DIR` | `ingest` | Folder of lesson files |
 | `NEXT_PUBLIC_APP_NAME` | app | Defaults to `Lernbuch` |
 
 ## Lesson files
@@ -67,11 +59,11 @@ A lesson is one Markdown file named `YYYY-MM-DD-lektion-NN.md`. It has YAML fron
 | `classwork` | Exercises, each with `solution`, `why` and `takeaway` |
 | `homework` | The same, plus staged `hints`, `dueDate` and `revealPolicy` |
 | `quiz` | A quiz and its questions |
-| `errors` | Mistakes made in class. They become review items for the admin |
+| `errors` | Mistakes made in class. They become drilled review items |
 
 [`tests/fixtures/2099-01-01-lektion-99.md`](tests/fixtures/2099-01-01-lektion-99.md) is a complete worked example that uses every block type and all seventeen exercise types. Skill tags must come from [`src/config/skills.ts`](src/config/skills.ts); unknown tags are rejected on purpose, so a typo cannot silently create a new skill.
 
-Re-uploading a lesson updates it in place. Content ids are permanent, so learners' progress and review history survive every re-import. Run `pnpm validate` to check files without touching the database. It reports the exact YAML path of any problem.
+Re-importing a lesson updates it in place. Content ids are permanent, so learners' progress and review history survive every re-import. Run `pnpm validate` to check files without touching the database. It reports the exact YAML path of any problem.
 
 ## Commands
 
@@ -81,10 +73,9 @@ Re-uploading a lesson updates it in place. Content ids are permanent, so learner
 | `pnpm build` | Production build. Run it, not just `typecheck`: some Next.js constraints only surface here |
 | `pnpm typecheck` / `pnpm lint` | TypeScript / ESLint |
 | `pnpm test` | Vitest: parser, grading, SRS, ingest idempotency, action isolation (needs the database) |
-| `pnpm test:e2e` | Playwright against a dev server. Needs `seed:admin` first |
+| `pnpm test:e2e` | Playwright against a dev server |
 | `pnpm db:up` | Start the local database |
 | `pnpm db:generate` / `pnpm db:migrate` | Create / apply Drizzle migrations |
-| `pnpm seed:admin` | Create or update the admin account |
 | `pnpm ingest` / `pnpm ingest:force` | Import lesson files from `CONTENT_DIR` |
 | `pnpm validate` | Parse and validate lesson files without a database |
 
@@ -94,11 +85,11 @@ Two e2e runs must not overlap, and source files must not be edited while one run
 
 Any Node host works; Vercel with Neon is the tested path.
 
-1. Create a Neon database and run `pnpm db:migrate` and `pnpm seed:admin` against it from your machine.
-2. Import the repository into Vercel and set `DATABASE_URL`, `AUTH_SECRET` and `AUTH_URL`. The `ADMIN_*` variables are only needed wherever you run the seed script.
+1. Create a Neon database, then run `pnpm db:migrate` and `pnpm ingest` against it from your machine.
+2. Import the repository into Vercel and set `DATABASE_URL` and `AUTH_SECRET`.
 3. Set `regions` in `vercel.json` to the region closest to your database.
 
-Lessons are stored in the database, not in the build, so publishing a lesson never needs a redeploy.
+Lessons are stored in the database, not in the build, so adding a lesson never needs a redeploy.
 
 ## Security notes
 
@@ -110,12 +101,12 @@ Lessons are stored in the database, not in the build, so publishing a lesson nev
 ## Project layout
 
 ```
-src/app/          routes: (auth) sign in/up, (app) the learner app and /admin, welcome
+src/app/          routes: (auth) sign in/up, (app) the learner app, welcome
 src/actions/      Server Actions
 src/components/   german/ exercise/ quiz/ review/ shell/ ui/
 src/lib/          content/ grading/ srs/ homework/, auth, session, rate limiting
 src/db/           schema, client, queries
-scripts/          migrate, seed-admin, ingest, validate
+scripts/          migrate, ingest, validate
 tests/            unit tests, e2e specs, fixtures
 drizzle/          migrations
 ```
