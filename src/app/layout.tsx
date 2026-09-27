@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Bricolage_Grotesque, IBM_Plex_Mono, Source_Serif_4 } from 'next/font/google';
-import { APP_NAME } from '@/lib/utils';
+import { APP_NAME, SITE_URL } from '@/lib/utils';
 import './globals.css';
 
 /* Section 16.3 */
@@ -26,11 +26,9 @@ const plexMono = IBM_Plex_Mono({
 const DESCRIPTION =
   'German that shows you how it works: colour-coded genders, visible cases, the Satzklammer, exercises that explain every answer, and spaced repetition. Free, A1 to B1.';
 
-/*
- * metadataBase is left to Next.js, which uses the Vercel production domain
- * (or localhost in development) to make the share image URL absolute.
- */
 export const metadata: Metadata = {
+  // Makes the canonical link and share image absolute URLs.
+  metadataBase: new URL(SITE_URL),
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
   description: DESCRIPTION,
   applicationName: APP_NAME,
