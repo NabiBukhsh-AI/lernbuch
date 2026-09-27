@@ -1,10 +1,17 @@
-# Lernbuch
+<p align="center">
+  <img src="src/app/icon.svg" alt="" width="88" height="88">
+</p>
 
-**German that shows you how it works.**
+<h1 align="center">Lernbuch</h1>
+
+<p align="center">
+  <strong>German that shows you how it works.</strong><br>
+  <a href="https://lernbuch.vercel.app">lernbuch.vercel.app</a>
+</p>
 
 Lernbuch turns every German lesson into a complete study unit. It teaches the words with their gender, makes the grammar's structure visible, gives exercises that explain themselves, and keeps a review queue that remembers what you got wrong.
 
-**[Start learning, free →](https://lernbuch.vercel.app)**
+**[Start learning, free, at lernbuch.vercel.app →](https://lernbuch.vercel.app)**
 
 Free · no email needed · works on your phone · A1 to B1
 
