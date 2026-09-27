@@ -1,0 +1,5 @@
+.next/
+node_modules/
+drizzle/
+pnpm-lock.yaml
+tests/fixtures/

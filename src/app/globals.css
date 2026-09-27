@@ -1,0 +1,293 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens — ARCHITECTURE.md Section 16.2.
+ *
+ * Semantic colour is spent almost entirely on grammar. The chrome stays quiet
+ * so that the gender and case hues actually mean something.
+ *
+ * Red is reserved for `die`. Error states therefore never use a red fill; they
+ * use --warn (amber) plus an icon plus text. See Section 3.1 and 16.2.
+ */
+
+:root {
+  /* ground */
+  --paper: #f2f3f1; /* page, a cool grey-green paper, not cream */
+  --card: #ffffff;
+  --rail: #1d2321; /* left rail and footer, near black with a green cast */
+  --ink: #14181a;
+  --ink-muted: #5c6670;
+  --rule: #d9dcd8; /* hairlines */
+
+  /* grammar semantics, never used for anything else */
+  --gender-m: #1b4fd8; /* der */
+  --gender-f: #c42348; /* die */
+  --gender-n: #14794a; /* das */
+  --case-nom: #14181a;
+  --case-akk: #6b2fbf;
+  --case-dat: #b26a00;
+  --case-gen: #00707a;
+
+  /* interaction, deliberately outside the gender palette */
+  --accent: #4b2e83; /* Tinte, deep violet: buttons, links, focus */
+  --accent-soft: #ede7f6;
+  --accent-ink: #ffffff; /* text on an --accent fill */
+
+  /* feedback, red is unavailable because red means feminine */
+  --ok: #14794a;
+  --warn: #a85b00; /* wrong and almost both live here, split by icon and copy */
+  --warn-soft: #fdf1e0;
+
+  /* Section 3.1: plural is a blue/red/green triband, not a fourth hue. */
+  --gender-pl: linear-gradient(
+    to right,
+    var(--gender-m) 0 33.33%,
+    var(--gender-f) 33.33% 66.66%,
+    var(--gender-n) 66.66% 100%
+  );
+
+  --rail-ink: #f2f3f1;
+}
+
+/*
+ * Dark theme. --paper/--rail/--ink invert and the gender hues lift by roughly
+ * 12% lightness so they keep AA contrast. The hue relationships survive the
+ * switch: der stays blue, die stays red, das stays green.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #14181a;
+    --card: #1d2321;
+    --rail: #0c0f0e;
+    --ink: #eceeea;
+    --ink-muted: #9ba5a0;
+    --rule: #2c3331;
+
+    --gender-m: #6b93f7;
+    --gender-f: #ef6683;
+    --gender-n: #35b57a;
+    --case-nom: #eceeea;
+    --case-akk: #ab84ec;
+    --case-dat: #e2a349;
+    --case-gen: #45b9c3;
+
+    --accent: #b09ae9;
+    --accent-soft: #2a2140;
+    --accent-ink: #14181a;
+
+    --ok: #35b57a;
+    --warn: #e2a349;
+    --warn-soft: #2e2416;
+
+    --rail-ink: #eceeea;
+  }
+}
+
+:root[data-theme='dark'] {
+  --paper: #14181a;
+  --card: #1d2321;
+  --rail: #0c0f0e;
+  --ink: #eceeea;
+  --ink-muted: #9ba5a0;
+  --rule: #2c3331;
+
+  --gender-m: #6b93f7;
+  --gender-f: #ef6683;
+  --gender-n: #35b57a;
+  --case-nom: #eceeea;
+  --case-akk: #ab84ec;
+  --case-dat: #e2a349;
+  --case-gen: #45b9c3;
+
+  --accent: #b09ae9;
+  --accent-soft: #2a2140;
+  --accent-ink: #14181a;
+
+  --ok: #35b57a;
+  --warn: #e2a349;
+  --warn-soft: #2e2416;
+
+  --rail-ink: #eceeea;
+}
+
+/* Expose the tokens to Tailwind utilities: bg-paper, text-gender-m, ... */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-rail: var(--rail);
+  --color-rail-ink: var(--rail-ink);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-rule: var(--rule);
+
+  --color-gender-m: var(--gender-m);
+  --color-gender-f: var(--gender-f);
+  --color-gender-n: var(--gender-n);
+  --color-case-nom: var(--case-nom);
+  --color-case-akk: var(--case-akk);
+  --color-case-dat: var(--case-dat);
+  --color-case-gen: var(--case-gen);
+
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  /* Section 16.3 type scale */
+  --text-xs: 0.75rem; /* 12 */
+  --text-sm: 0.875rem; /* 14 */
+  --text-base: 1rem; /* 16 */
+  --text-prose: 1.125rem; /* 18 */
+  --text-lg: 1.375rem; /* 22 */
+  --text-xl: 1.75rem; /* 28 */
+  --text-2xl: 2.5rem; /* 40 */
+  --text-3xl: 3.5rem; /* 56 */
+}
+
+@layer base {
+  * {
+    border-color: var(--rule);
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-serif);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+
+  /* Section 16.6: a visible focus ring in --accent, everywhere. */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* German prose: 18px, 1.65 line height, 68 character measure. Section 16.3 */
+  .prose-de {
+    font-family: var(--font-serif);
+    font-size: var(--text-prose);
+    line-height: 1.65;
+    max-width: 68ch;
+  }
+
+  /*
+   * Plural underline. The triband is a gradient rather than a colour, so it
+   * cannot go through `color`; it is painted as a background on the underline.
+   */
+  .gender-plural-underline {
+    background-image: var(--gender-pl);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 100% 2px;
+    padding-bottom: 2px;
+  }
+}
+
+/* Section 16.5, motion 3 of 3: the verdict banner slides down 8px. */
+@keyframes verdict-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * Print — Section 19, Phase 9: "a real need before an exam".
+ *
+ * The rail, the umlaut bar and every control are dropped; what is left is the
+ * lesson itself on paper. Colour is kept for the gender and case hues because
+ * they are the teaching, but everything is forced to print rather than being
+ * dropped by the browser's "background graphics" default.
+ */
+@media print {
+  .rail-print-hide,
+  nav[aria-label='Lessons'],
+  nav[aria-label='Lesson sections'],
+  footer,
+  header button,
+  button,
+  [role='group'][aria-label='Insert umlauts'] {
+    display: none !important;
+  }
+
+  :root {
+    --paper: #ffffff;
+    --card: #ffffff;
+    --ink: #000000;
+    --ink-muted: #333333;
+    --rule: #999999;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  .prose-de {
+    max-width: none;
+  }
+
+  /* Keep a card and its heading together rather than splitting mid-rule. */
+  article,
+  figure,
+  table,
+  li {
+    break-inside: avoid;
+  }
+
+  h1,
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  /* Section 16.6: colour carries meaning here, so it must survive printing. */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 9pt;
+    color: #555;
+  }
+}
+
+/* Section 16.5: reduced motion renders end states directly. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

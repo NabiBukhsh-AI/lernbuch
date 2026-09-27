@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "attempt_answers_attempt_exercise_uq" ON "attempt_answers" USING btree ("attempt_id","exercise_id");

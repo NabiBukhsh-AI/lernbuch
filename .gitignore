@@ -1,0 +1,29 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+
+.env
+.env.local
+.env*.local
+
+*.tsbuildinfo
+next-env.d.ts
+
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+.DS_Store
+Thumbs.db
+
+# local test run logs
+*-run.log
+.vercel
+.env*
+!.env.example
+
+# lesson files belong in their own private repo, never in this one
+/content/

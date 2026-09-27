@@ -1,0 +1,1 @@
+ALTER TYPE "public"."exercise_type" ADD VALUE 'four_forms';

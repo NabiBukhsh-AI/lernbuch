@@ -1,0 +1,1 @@
+ALTER TABLE "exercises" ADD COLUMN "due_date_override" date;

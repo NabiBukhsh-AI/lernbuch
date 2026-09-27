@@ -1,0 +1,11 @@
+# pnpm reads settings from here rather than the "pnpm" field in package.json.
+#
+# Postinstall scripts are blocked by default. These three genuinely need to run:
+# each unpacks or links a native binary that its package is useless without.
+#   esbuild       - the compiler binary behind tsx and vitest
+#   sharp         - Next.js image optimisation
+#   unrs-resolver - the native resolver used by the ESLint import plugin
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
