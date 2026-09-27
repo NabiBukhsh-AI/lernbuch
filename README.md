@@ -1,112 +1,76 @@
 # Lernbuch
 
-A web app that turns German lessons into complete, interactive study units, from A1 to B1.
+**German that shows you how it works.**
 
-Each lesson becomes **Overview → Vocabulary → Grammar → Classwork → Homework → Quiz**. Every mistake a learner makes feeds a spaced-repetition review queue and a per-skill weakness report.
+Lernbuch turns every German lesson into a complete study unit. It teaches the words with their gender, makes the grammar's structure visible, gives exercises that explain themselves, and keeps a review queue that remembers what you got wrong.
 
-## What makes it different
+**[Start learning, free →](https://lernbuch.vercel.app)**
 
-- **Nouns are never shown bare.** Every noun appears with its article and plural, coloured by gender (der blue, die red, das green). Because red means feminine, errors are never shown in red: they use amber, an icon and text.
-- **Case is always visible.** Sentences carry Nominativ, Akkusativ and Dativ chips under the phrases that change.
-- **The Satzklammer is drawn.** Example sentences bracket the conjugated verb in position two to the rest of the verb at the end of the clause.
-- **Every exercise answers "why".** A solution never appears without its reason and a takeaway rule.
-- **Homework uses staged hints.** A nudge, then the rule, then the answer, and only on request.
-- **Spaced repetition and weak skills.** Wrong answers pull the linked vocabulary and grammar forward in the review queue, and skills below 70% are offered as a drill.
-- **Umlauts are one keystroke away.** A persistent ä ö ü ß strip, plus Alt+a / o / u / s.
+Free · no email needed · works on your phone · A1 to B1
 
-## Accounts
+---
 
-- **Anyone can sign up** with a username and password; no email is needed. Signup and login are rate-limited per IP and per username, and the signup form has a honeypot against bots.
-- **Learners manage their own accounts** under Settings: display name, password, and account deletion, which removes all of their progress.
+## One loop per lesson
 
-## Stack
+Every lesson follows the same path, so you always know where you are and what comes next.
 
-Next.js 15 (App Router, Server Actions) · TypeScript · Postgres (Neon in production) · Drizzle ORM · Auth.js (credentials, JWT sessions, Argon2id) · Tailwind CSS 4 · Vitest · Playwright
+**Overview → Vocabulary → Grammar → Classwork → Homework → Quiz**
 
-## Running it locally
+Four weeks later you can open any lesson and rebuild it from memory, then prove you still know it.
 
-Requires **Node 20+**, **pnpm** and **Docker**.
+## Why it sticks
 
-```bash
-pnpm install
-cp .env.example .env.local      # then set AUTH_SECRET
-pnpm db:up                      # Postgres + a WebSocket proxy, see docker-compose.yml
-pnpm db:migrate
-pnpm ingest                     # loads the lesson files in CONTENT_DIR
-pnpm dev                        # http://localhost:3000
-```
+### Never a bare noun
 
-The app talks to Postgres through the Neon serverless driver, which speaks WebSocket. Locally, `docker-compose.yml` runs Neon's `wsproxy` in front of a stock Postgres, and `src/db/client.ts` switches to it whenever `DATABASE_URL` points at `localhost`. The same code therefore runs locally and in production.
+Every noun arrives with its article and its plural, colour-coded by gender, so you learn the gender with the word instead of after it.
 
-### Environment
+> **der** Tisch, die Tische · **die** Lampe, die Lampen · **das** Buch, die Bücher
 
-| Variable | Needed by | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | app, scripts | Postgres connection string. For Neon, keep `?sslmode=require` |
-| `AUTH_SECRET` | app | Session signing key: `openssl rand -base64 32` |
-| `AUTH_URL` | app | The site's public URL |
-| `CONTENT_DIR` | `ingest` | Folder of lesson files |
-| `NEXT_PUBLIC_APP_NAME` | app | Defaults to `Lernbuch` |
+### Case you can see
 
-## Lesson files
+Nominativ, Akkusativ and Dativ are marked right under the words they change. Tables highlight the one cell that actually changes, so the pattern is obvious at a glance.
 
-A lesson is one Markdown file named `YYYY-MM-DD-lektion-NN.md`. It has YAML frontmatter (the `slug` must equal the file name without `.md`), prose under `##` headings, and structured data in fenced blocks whose info string is `yaml <blocktype>`:
+### The Satzklammer, drawn
 
-| Block | Holds |
-| --- | --- |
-| `vocab` | Words. Nouns need `article` and `plural`; verbs need `verbForms.praesens` and `.aux` |
-| `grammar` | Rules, tables with highlighted cells, examples, common mistakes |
-| `classwork` | Exercises, each with `solution`, `why` and `takeaway` |
-| `homework` | The same, plus staged `hints`, `dueDate` and `revealPolicy` |
-| `quiz` | A quiz and its questions |
-| `errors` | Mistakes made in class. They become drilled review items |
-
-[`tests/fixtures/2099-01-01-lektion-99.md`](tests/fixtures/2099-01-01-lektion-99.md) is a complete worked example that uses every block type and all seventeen exercise types. Skill tags must come from [`src/config/skills.ts`](src/config/skills.ts); unknown tags are rejected on purpose, so a typo cannot silently create a new skill.
-
-Re-importing a lesson updates it in place. Content ids are permanent, so learners' progress and review history survive every re-import. Run `pnpm validate` to check files without touching the database. It reports the exact YAML path of any problem.
-
-## Commands
-
-| Command | Does |
-| --- | --- |
-| `pnpm dev` | Development server |
-| `pnpm build` | Production build. Run it, not just `typecheck`: some Next.js constraints only surface here |
-| `pnpm typecheck` / `pnpm lint` | TypeScript / ESLint |
-| `pnpm test` | Vitest: parser, grading, SRS, ingest idempotency, action isolation (needs the database) |
-| `pnpm test:e2e` | Playwright against a dev server |
-| `pnpm db:up` | Start the local database |
-| `pnpm db:generate` / `pnpm db:migrate` | Create / apply Drizzle migrations |
-| `pnpm ingest` / `pnpm ingest:force` | Import lesson files from `CONTENT_DIR` |
-| `pnpm validate` | Parse and validate lesson files without a database |
-
-Two e2e runs must not overlap, and source files must not be edited while one runs: global setup and teardown share database state, and the dev server hot-reloads mid-run.
-
-## Deploying
-
-Any Node host works; Vercel with Neon is the tested path.
-
-1. Create a Neon database, then run `pnpm db:migrate` and `pnpm ingest` against it from your machine.
-2. Import the repository into Vercel and set `DATABASE_URL` and `AUTH_SECRET`.
-3. Set `regions` in `vercel.json` to the region closest to your database.
-
-Lessons are stored in the database, not in the build, so adding a lesson never needs a redeploy.
-
-## Security notes
-
-- Passwords are hashed with Argon2id (OWASP baseline parameters). An unknown username costs the same verification time as a wrong password, and every login failure returns the same message.
-- Every Server Action takes the user id from the session, never from client input, and re-reads the user row. A suspended or deleted account is therefore locked out immediately, even while its session token is still valid.
-- A strict Content Security Policy is set with no `unsafe-eval` in production, along with `frame-ancestors 'none'` and `nosniff`.
-- Homework solutions and hints are never serialised into the page. They are fetched on request.
-
-## Project layout
+German puts the conjugated verb in second position and sends the rest of the verb to the end. Lernbuch draws that bracket under every example sentence, so you see the shape of German before you memorise it.
 
 ```
-src/app/          routes: (auth) sign in/up, (app) the learner app, welcome
-src/actions/      Server Actions
-src/components/   german/ exercise/ quiz/ review/ shell/ ui/
-src/lib/          content/ grading/ srs/ homework/, auth, session, rate limiting
-src/db/           schema, client, queries
-scripts/          migrate, ingest, validate
-tests/            unit tests, e2e specs, fixtures
-drizzle/          migrations
+Ich  will  morgen  nach Berlin  fahren.
+     └──────────────────────────────┘
 ```
+
+### Every answer comes with a "why"
+
+No solution appears on its own. Each one comes with the reason it is right and a short rule you can take to the next sentence.
+
+### Mistakes, turned around
+
+When you get something wrong, the correct form stands out and the wrong one is struck through, so the version you remember is the right one.
+
+> ~~Ich habe gestern gegangen.~~ → **Ich bin gestern gegangen.**
+> Verbs of movement take *sein* in the Perfekt.
+
+## Built for the way you actually study
+
+- **Classwork to replay.** Every exercise from the lesson, with instant checking and tips right beside it.
+- **Homework with staged hints.** You get a nudge, then the rule, then the answer, and only when you ask. Taking a hint never costs you marks.
+- **Quizzes.** Timed or relaxed, with your results broken down by skill, not just a single score.
+- **Spaced repetition.** Words and rules you get wrong come back just before you would forget them. A few minutes a day is enough.
+- **Weak skills, named.** Your progress is tracked per grammar skill, so "Akkusativ endings" becomes a focused drill instead of a vague feeling.
+- **Vocabulary and grammar banks.** Every word and every rule from every lesson, searchable in one place.
+- **Cheatsheets.** Decision trees for the questions you keep asking, such as which article to use, and *nicht* or *kein*.
+- **Exam mode.** Typing *Strasse* for *Straße* is accepted with a gentle note by default. Turn on strict mode to be marked the way an exam will mark you.
+- **Umlauts made easy.** An ä ö ü ß strip is always at hand, along with keyboard shortcuts.
+- **Light and dark.** Comfortable to read at any hour, on any screen.
+
+## Progress you can see
+
+A daily streak, your minutes of review, a mastery map of every skill, and a log of your mistakes until you have fixed them. The tone is always encouraging: a missed day never earns a guilt message.
+
+## Get started
+
+1. **[Create a free account](https://lernbuch.vercel.app/signup)** with a username and password. No email is needed.
+2. **Open your first lesson** and work through it, from vocabulary to the quiz.
+3. **Come back for a few minutes of review** each day, and let the repetition do the rest.
+
+Not ready to sign up? The [home page](https://lernbuch.vercel.app) has a short der, die or das exercise you can try right away.
